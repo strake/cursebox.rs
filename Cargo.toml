@@ -1,0 +1,35 @@
+[package]
+name = "cursebox"
+version = "0.2.0"
+authors = [
+    "Greg Chapple <gregchapple1@gmail.com>",
+    "Tom Jakubowski <tom@crystae.net>",
+    "M Farkas-Dyck <m.farkasdyck@gmail.com>",
+]
+
+links = "cursebox"
+build = "build.rs"
+license = "MIT"
+description = "Cell-grid TTY UI library"
+repository = "https://github.com/strake/cursebox.rs"
+homepage = "https://github.com/strake/cursebox.rs"
+
+[dependencies]
+buf = "0.2"
+containers = "0.9.0"
+derivative = { git = "https://github.com/strake/derivative.rs", rev = "a83557289a19afb225dfcdcc51ebe37a8b0e4042" }
+flags = "0.1"
+i-o = "0.4"
+libc = { version = "0.2", default-features = false }
+loca = "0.7"
+null-terminated = "0.3.3"
+ptr = "0.2.1"
+slot = "0.2.4"
+syscall = "0.2"
+tempus = { version = "0.2.3", features = ["libc"] }
+unix = "0.6.3"
+unix-signal = "0.1"
+unix-tty = "0.3"
+
+[build-dependencies]
+cc = "1"
