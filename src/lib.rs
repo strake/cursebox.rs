@@ -126,10 +126,11 @@ impl<A: Alloc> UI<A> {
         let mut ui = Self {
             cell_buffer: CellBuf::new_in(alloc),
             term_writer: unsafe {
-                static mut buf: [u8; 0x8000] = unsafe { util::uninitialized() };
+                union Bs { bs: [u8; 0x8000], u: () }
+                static mut buf: Bs = Bs { u: () };
                 union U<'a> { parts: (*mut u8, usize), slice: &'a mut [Slot<u8>] }
                 term::TermWriter::new(buf::Write::from_raw(tty,
-                                                           RawVec::from_storage(U { parts: (buf.as_ptr() as *mut u8, buf.len()) }.slice)))
+                                                           RawVec::from_storage(U { parts: (buf.bs.as_ptr() as *mut u8, buf.bs.len()) }.slice)))
             },
             cursor_x: !0, cursor_y: !0,
             fg: Attr::Default, bg: Attr::Default,
@@ -138,8 +139,9 @@ impl<A: Alloc> UI<A> {
             input_mode: input::Mode::Esc,
             inbuf: Ringbuffer {
                 buf: unsafe {
-                    static mut buf: [u8; 0x1000] = unsafe { util::uninitialized() };
-                    &mut buf
+                    union Bs { bs: [u8; 0x1000], u: () }
+                    static mut buf: Bs = Bs { u: () };
+                    &mut buf.bs
                 },
                 begin: 0 as _, end: 0 as _,
             },

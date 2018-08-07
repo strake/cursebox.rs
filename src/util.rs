@@ -13,12 +13,6 @@ pub unsafe fn copy_from_ptr<A: Copy>(tgt: &mut [A], src: *const A) {
 #[inline(always)]
 pub fn ptr_diff<A>(q: *mut A, p: *mut A) -> usize { (q as usize - p as usize)/mem::size_of::<A>() }
 
-#[inline(always)]
-pub const unsafe fn uninitialized<A>() -> A {
-    union U<A> { u: (), v: A };
-    U { u: () }.v
-}
-
 pub mod slice {
     use core::slice;
 
