@@ -285,6 +285,9 @@ impl<A: Alloc> UI<A> {
     }
 
     #[inline]
+    pub fn get_cursor(&self) -> (usize, usize) { (self.cursor_x, self.cursor_y) }
+
+    #[inline]
     pub fn select_input_mode(&mut self, mode: Option<input::Mode>) -> input::Mode {
         if let Some(mode) = mode { mem::replace(&mut self.input_mode, mode) } else { self.input_mode }
     }
