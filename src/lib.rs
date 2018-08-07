@@ -312,8 +312,8 @@ impl<A: Alloc> UI<A> {
     /// Return a `Printer` which writes to the screen with the given attributes beginning at
     /// `pt`.
     #[inline]
-    pub fn printer(&mut self, pt: (usize, usize), fg: Attr, bg: Attr) -> Printer<A> {
-        Printer { pt, fg, bg, screen: self }
+    pub fn printer(&mut self, pt: (usize, usize), fg: Attr, bg: Attr) -> Printer {
+        Printer { pt, fg, bg, screen: self.cells_mut() }
     }
 }
 
@@ -331,18 +331,18 @@ impl<A: Alloc> Drop for UI<A> {
 ///
 /// Cuts off rather than wraps overflow
 #[derive(Debug)]
-pub struct Printer<'a, A: 'a + Alloc> {
+pub struct Printer<'a> {
     pt: (usize, usize),
     fg: Attr, bg: Attr,
-    screen: &'a mut UI<A>,
+    screen: CellsMut<'a>,
 }
 
-impl<'a, A: Alloc> Printer<'a, A> {
+impl<'a> Printer<'a> {
     #[inline]
     fn print_chars<Xs: Iterator<Item = char>>(&mut self, xs: Xs) -> usize {
         let mut n = 0;
         for x in xs {
-            if let Some(p) = self.screen.cells_mut().at_mut(self.pt.0+n, self.pt.1) {
+            if let Some(p) = self.screen.at_mut(self.pt.0+n, self.pt.1) {
                 *p = Cell { ch: x as _, fg: self.fg, bg: self.bg }
             }
             n += 1;
@@ -351,7 +351,7 @@ impl<'a, A: Alloc> Printer<'a, A> {
     }
 }
 
-impl<'a, A: Alloc> fmt::Write for Printer<'a, A> {
+impl<'a> fmt::Write for Printer<'a> {
     #[inline]
     fn write_str(&mut self, s: &str) -> fmt::Result {
         self.pt.0 += self.print_chars(s.chars());
