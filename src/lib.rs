@@ -4,6 +4,12 @@
 #![feature(const_str_as_ptr)]
 #![feature(untagged_unions)]
 
+#![deny(missing_debug_implementations)]
+//#![deny(missing_docs)]
+
+//! Start with [`UI`](struct.UI.html).
+//! See too [examples](https://github.com/strake/cursebox.rs/blob/master/examples).
+
 extern crate buf;
 #[macro_use]
 extern crate bitflags;
@@ -87,6 +93,9 @@ fn init_term() -> Result<([&'static NulStr; term::T_FUNCS_NUM], [&'static NulStr
     Ok((funcs, keys))
 } }
 
+/// Cell-grid TTY UI
+///
+/// Merely holds a grid of cells which you can modify (with [`cells_mut`](#method.cells_mut) or [`printer`](#method.printer)) and then [`present`](#method.present) to the TTY.
 #[derive(Derivative)]
 #[derivative(Debug)]
 pub struct UI<A: Alloc> {
@@ -105,6 +114,7 @@ pub struct UI<A: Alloc> {
 static lock: AtomicBool = AtomicBool::new(false);
 
 impl<A: Alloc> UI<A> {
+    /// Open "/dev/tty" and make a new `UI` with it.
     pub fn new_in(alloc: A) -> Result<Self, OsErr> {
         use unix::file::*;
 
@@ -156,10 +166,12 @@ impl<A: Alloc> UI<A> {
     #[inline] pub fn width(&self) -> usize { self.term_size.0 as _ }
     #[inline] pub fn height(&self) -> usize { self.term_size.1 as _ }
 
+    /// Return a mutable view of the cells, which can be used to draw on the screen.
     #[inline] pub fn cells_mut(&mut self) -> CellsMut { self.cell_buffer.cells_mut().1 }
 
     #[inline] fn tty_mut(&mut self) -> &mut File { self.term_writer.w.as_mut() }
 
+    /// Restart the UI (after calling `stop`).
     pub fn start(&mut self) -> Result<(), OsErr> {
         let mut tios = self.orig_tios;
         tios.c_iflag &= !(::libc::IGNBRK | ::libc::BRKINT | ::libc::PARMRK | ::libc::ISTRIP |
@@ -187,6 +199,7 @@ impl<A: Alloc> UI<A> {
         Ok(())
     }
 
+    /// Stop the UI temporarily and revert the term to its initial state.
     pub fn stop(&mut self) {
         use core::fmt::Write;
         use term::Func::*;
@@ -211,9 +224,11 @@ impl<A: Alloc> UI<A> {
         Ok(())
     }
 
+    /// Clear the UI. You likely want to call this before you begin drawing.
     #[inline]
     pub fn clear(&mut self) { self.cell_buffer.cells_mut().1.clear(self.fg, self.bg) }
 
+    /// Show the present state of the UI on the TTY.
     pub fn present(&mut self) {
         self.term_writer.invalidate_pos();
 
@@ -235,6 +250,7 @@ impl<A: Alloc> UI<A> {
         self.term_writer.w.flush();
     }
 
+    /// Fetch the next event from the TTY.
     #[inline]
     pub fn fetch_event(&mut self, timeout: Option<::time::Span>) -> Result<Option<input::Event>, OsErr> { unsafe {
         let tty_fd = self.tty_mut().fd() as ::libc::c_int;
@@ -287,11 +303,14 @@ impl<A: Alloc> UI<A> {
     #[inline]
     pub fn get_cursor(&self) -> (usize, usize) { (self.cursor_x, self.cursor_y) }
 
+    /// Set the input mode and return the former input mode.
     #[inline]
     pub fn select_input_mode(&mut self, mode: Option<input::Mode>) -> input::Mode {
         if let Some(mode) = mode { mem::replace(&mut self.input_mode, mode) } else { self.input_mode }
     }
 
+    /// Return a `Printer` which writes to the screen with the given attributes beginning at
+    /// `pt`.
     #[inline]
     pub fn printer(&mut self, pt: (usize, usize), fg: Attr, bg: Attr) -> Printer<A> {
         Printer { pt, fg, bg, screen: self }
@@ -308,6 +327,9 @@ impl<A: Alloc> Drop for UI<A> {
     } }
 }
 
+/// Writer to screen
+///
+/// Cuts off rather than wraps overflow
 #[derive(Debug)]
 pub struct Printer<'a, A: 'a + Alloc> {
     pt: (usize, usize),
