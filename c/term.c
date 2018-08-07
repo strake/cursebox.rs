@@ -98,7 +98,7 @@ static inline const char* my_strstr(const char *s, const char *t) {
 	return 0;
 }
 
-static int init_term_builtin(char *funcs[], char *keys[]) {
+static int init_term_builtin(const char *funcs[], const char *keys[]) {
 	int i;
 	const char *term = getenv("TERM");
 
@@ -216,7 +216,7 @@ const int16_t ti_keys[] = {
 	79, 83,
 };
 
-int init_term(char *funcs[], char *keys[]) {
+int init_term(const char *funcs[], const char *keys[]) {
 	int i;
 	char *data = load_terminfo();
 	if (!data) return init_term_builtin(funcs, keys);
