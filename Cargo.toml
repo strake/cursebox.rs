@@ -17,7 +17,7 @@ homepage = "https://github.com/strake/cursebox.rs"
 [dependencies]
 buf = "0.2"
 containers = "0.9.0"
-derivative = { git = "https://github.com/strake/derivative.rs", rev = "a83557289a19afb225dfcdcc51ebe37a8b0e4042" }
+derivate = "0.1.0"
 flags = "0.1"
 i-o = "0.4"
 libc = { version = "0.2", default-features = false }
