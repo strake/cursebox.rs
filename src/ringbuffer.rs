@@ -41,7 +41,7 @@ impl<'a> Ringbuffer<'a> {
         self.end = self.end.add(1);
         if self.begin < self.end && self.to_end_from(self.begin) < bs.len() {
             // make a cut
-            let (xs, ys) = slice::split_at_unchecked(bs, self.to_end_from(self.end));
+            let (xs, ys) = bs.split_at_unchecked(self.to_end_from(self.end));
             copy_from_slice(self.end, xs);
             copy_from_slice(self.buf.as_mut_ptr(), ys);
             self.end = self.buf.as_mut_ptr().add(ys.len() - 1);
