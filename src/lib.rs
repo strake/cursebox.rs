@@ -23,6 +23,7 @@ extern crate loca;
 extern crate null_terminated as nul;
 extern crate ptr;
 extern crate slot;
+extern crate subslice;
 #[macro_use]
 extern crate syscall;
 extern crate time;
@@ -74,6 +75,7 @@ pub use input::{Event, Key, Mod};
 mod cellbuf;
 mod ringbuffer;
 mod term;
+mod terminfo;
 mod utf8;
 mod util;
 
@@ -81,17 +83,6 @@ pub use cellbuf::{CellBuf, CellsMut};
 use ringbuffer::Ringbuffer;
 
 static mut winch_fds: [c_int; 2] = [-1; 2];
-
-#[inline]
-fn init_term() -> Result<([&'static NulStr; term::T_FUNCS_NUM], [&'static NulStr; input::TB_KEYS_NUM]), OsErr> { unsafe {
-    extern "C" {
-        fn init_term(funcs: *mut &'static NulStr, keys: *mut &'static NulStr) -> isize;
-    }
-
-    let (mut funcs, mut keys): ([_; term::T_FUNCS_NUM], [_; input::TB_KEYS_NUM]) = mem::uninitialized();
-    if init_term(funcs.as_mut_ptr(), keys.as_mut_ptr()) < 0 { return Err(OsErr(NonZeroUsize::new_unchecked(!0))) }
-    Ok((funcs, keys))
-} }
 
 /// Cell-grid TTY UI
 ///
@@ -113,6 +104,13 @@ pub struct UI<A: Alloc> {
 
 static lock: AtomicBool = AtomicBool::new(false);
 
+macro_rules! static_buf {
+    [$t:ty; $x:expr] => {{
+        static mut buf: Slot<[$t; $x]> = Slot::new();
+        &mut buf.x
+    }}
+}
+
 impl<A: Alloc> UI<A> {
     /// Open "/dev/tty" and make a new `UI` with it.
     pub fn new_in(alloc: A) -> Result<Self, OsErr> {
@@ -122,7 +120,8 @@ impl<A: Alloc> UI<A> {
             .map_err(|_| ::unix::err::EBUSY)?;
 
         let tty = open_at(None, str0!("/dev/tty"), OpenMode::RdWr, FileMode::empty())?;
-        let (funcs, keys) = init_term()?;
+        let terminfo::Spec { funcs, keys } = terminfo::init(unsafe { static_buf![u8; 0x4000] })
+            .ok_or(OsErr(unsafe { NonZeroUsize::new_unchecked(!0) }))?;
         let (winch_rx, winch_tx) = new_pipe(OpenFlags::empty())?;
         unsafe { winch_fds = [winch_rx.fd() as i32, winch_tx.fd() as i32] };
         mem::forget((winch_rx, winch_tx));
@@ -136,11 +135,9 @@ impl<A: Alloc> UI<A> {
         let mut ui = Self {
             cell_buffer: CellBuf::new_in(alloc),
             term_writer: unsafe {
-                union Bs { bs: [u8; 0x8000], u: () }
-                static mut buf: Bs = Bs { u: () };
-                union U<'a> { parts: (*mut u8, usize), slice: &'a mut [Slot<u8>] }
-                term::TermWriter::new(buf::Write::from_raw(tty,
-                                                           RawVec::from_storage(U { parts: (buf.bs.as_ptr() as *mut u8, buf.bs.len()) }.slice)))
+                union U<'a> { buf: &'a mut [u8], slot: &'a mut [Slot<u8>] }
+                let buf = U { buf: static_buf![u8; 0x8000] }.slot;
+                term::TermWriter::new(buf::Write::from_raw(tty, RawVec::from_storage(buf)))
             },
             cursor_x: !0, cursor_y: !0,
             fg: Attr::Default, bg: Attr::Default,
@@ -148,11 +145,7 @@ impl<A: Alloc> UI<A> {
             orig_tios,
             input_mode: input::Mode::Esc,
             inbuf: Ringbuffer {
-                buf: unsafe {
-                    union Bs { bs: [u8; 0x1000], u: () }
-                    static mut buf: Bs = Bs { u: () };
-                    &mut buf.bs
-                },
+                buf: unsafe { static_buf![u8; 0x1000] },
                 begin: 0 as _, end: 0 as _,
             },
             keys,
