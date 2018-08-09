@@ -46,7 +46,7 @@ impl<A: Alloc> CellBuf<A> {
         self.init(width, height)?;
         {
             let (front, back) = self.cells_mut();
-            for x in [front, back].iter_mut() { x.clear(Attr::Default, Attr::Default) }
+            for x in &mut [front, back] { x.clear(Attr::Default, Attr::Default) }
         }
 
         let minw = cmp::min(oldw, width);
