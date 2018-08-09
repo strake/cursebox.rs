@@ -6,17 +6,21 @@ use cursebox::{Attr, Cell, Event, Key};
 const WIDTH : usize = 80;
 const HEIGHT: usize = 25;
 
+fn draw(cells: &[[Cell; WIDTH]; HEIGHT]) {
+    for (y, row) in cells.iter().enumerate() {
+        for (x, cell) in row.iter().cloned().enumerate() {
+            if let Some(p) = ui.cells_mut().at_mut(x, y) { *p = cell }
+        }
+    }
+}
+
 fn main() {
     let mut ui = cursebox::UI::new_in(jemalloc::Jemalloc).unwrap();
     let mut pt = (0, 0);
     let mut cells = [[Cell { ch: ' ' as _, fg: Attr::Default, bg: Attr::Default }; WIDTH]; HEIGHT];
     loop {
         ui.clear();
-        for (y, row) in cells.iter().enumerate() {
-            for (x, cell) in row.iter().cloned().enumerate() {
-                if let Some(p) = ui.cells_mut().at_mut(x, y) { *p = cell }
-            }
-        }
+        draw();
         ui.set_cursor(pt.0, pt.1);
         ui.present();
         match ui.fetch_event(None) {
