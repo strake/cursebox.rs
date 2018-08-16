@@ -9,6 +9,9 @@
 
 //! Start with [`UI`](struct.UI.html).
 //! See too [examples](https://github.com/strake/cursebox.rs/blob/master/examples).
+//!
+//! Usual use of the library each frame/iteration is to [`clear`](struct.UI.html#method.clear) the screen, draw, and then [`present`](struct.UI.html#method.present).
+//! You can [check events](struct.UI.html#method.fetch_event) before or after.
 
 extern crate buf;
 #[macro_use]
