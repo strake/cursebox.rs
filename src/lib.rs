@@ -2,7 +2,6 @@
 
 #![feature(const_fn)]
 #![feature(const_str_as_ptr)]
-#![feature(untagged_unions)]
 
 #![deny(missing_debug_implementations)]
 //#![deny(missing_docs)]
@@ -138,9 +137,8 @@ impl<A: Alloc> UI<A> {
         let mut ui = Self {
             cell_buffer: CellBuf::new_in(alloc),
             term_writer: unsafe {
-                union U<'a> { buf: &'a mut [u8], slot: &'a mut [Slot<u8>] }
-                let buf = U { buf: static_buf![u8; 0x8000] }.slot;
-                term::TermWriter::new(buf::Write::from_raw(tty, RawVec::from_storage(buf)))
+                static mut buf: [Slot<u8>; 0x8000] = [Slot::new(); 0x8000];
+                term::TermWriter::new(buf::Write::from_raw(tty, RawVec::from_storage(&mut buf[..])))
             },
             cursor_x: !0, cursor_y: !0,
             fg: Attr::Default, bg: Attr::Default,
