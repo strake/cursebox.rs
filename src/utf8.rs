@@ -1,26 +1,40 @@
-use core::slice;
+use core::num::NonZeroUsize;
 
-pub static utf8_length: [u8; 256] = [
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-  3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,1,1,
+static utf8_length: [L; 256] = [
+  L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,
+  L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,
+  L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,
+  L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,
+  L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,
+  L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,
+  L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,
+  L3,L3,L3,L3,L3,L3,L3,L3,L3,L3,L3,L3,L3,L3,L3,L3,L4,L4,L4,L4,L4,L4,L4,L4,L5,L5,L5,L5,L6,L6,L1,L1,
 ];
 
 static utf8_mask: [u8; 7] = [0, 0x7F, 0x1F, 0x0F, 0x07, 0x03, 0x01];
 
-pub fn decode(bs: &[u8]) -> Option<(u32, usize)> {
-    let l = utf8_length[bs[0] as usize] as usize;
-    if l > bs.len() { return None }
-    let bs = unsafe { slice::from_raw_parts(bs.as_ptr(), !0) };
-    let mut x = (bs[0] & unsafe { *utf8_mask.get_unchecked(l) }) as u32;
-    for i in 1..l {
+#[derive(Clone, Copy)]
+#[repr(u8)]
+enum L {
+    L1 = 1,
+    L2 = 2,
+    L3 = 3,
+    L4 = 4,
+    L5 = 5,
+    L6 = 6,
+}
+use self::L::*;
+
+pub fn decode(bs: &[u8]) -> Option<(u32, NonZeroUsize)> {
+    let bs_l = bs.len();
+    let (&b0, bs) = bs.split_first()?;
+    let l = utf8_length[b0 as usize] as usize;
+    if l > bs_l { return None }
+    let l = NonZeroUsize::new(l)?;
+    let mut x = (b0 & utf8_mask[l.get()]) as u32;
+    for b in bs[0..l.get()].iter().cloned() {
         x <<= 6;
-        x |= bs[i] as u32 & 0x3F;
+        x |= b as u32 & 0x3F;
     }
     Some((x, l))
 }
