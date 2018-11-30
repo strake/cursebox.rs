@@ -47,7 +47,7 @@ pub(crate) fn extract_event(inbuf: &mut Ringbuffer, mode: Mode, keys: [&::nul::N
     // utf8
     if let Some((x, n)) = ::utf8::decode(&buf[0..nbytes])
                .and_then(|(x, n)| ::core::char::from_u32(x).map(|x| (x, n))) {
-        inbuf.skip(n);
+        inbuf.skip(n.into());
         return Some((Mod::empty(), Key::Char(x)))
     }
 

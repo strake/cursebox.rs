@@ -1,7 +1,6 @@
 #![no_std]
 
 #![feature(const_fn)]
-#![feature(const_str_as_ptr)]
 
 #![deny(missing_debug_implementations)]
 //#![deny(missing_docs)]
