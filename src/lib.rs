@@ -120,7 +120,7 @@ impl<A: Alloc> UI<A> {
         lock.compare_exchange(false, true, Memord::Acquire, Memord::Relaxed)
             .map_err(|_| ::unix::err::EBUSY)?;
 
-        let tty = open_at(None, str0!("/dev/tty"), OpenMode::RdWr, FileMode::empty())?;
+        let tty = open_at(None, str0!("/dev/tty"), OpenMode::RdWr, None)?;
         let terminfo::Spec { funcs, keys } = terminfo::init(unsafe { static_buf![u8; 0x4000] })
             .ok_or(OsErr(unsafe { NonZeroUsize::new_unchecked(!0) }))?;
         let (winch_rx, winch_tx) = new_pipe(OpenFlags::empty())?;

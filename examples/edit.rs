@@ -1,12 +1,13 @@
 extern crate cursebox;
-extern crate jemalloc;
+extern crate default_allocator;
+extern crate loca;
 
 use cursebox::{Attr, Cell, Event, Key};
 
 const WIDTH : usize = 80;
 const HEIGHT: usize = 25;
 
-fn draw(cells: &[[Cell; WIDTH]; HEIGHT]) {
+fn draw<A: ::loca::Alloc>(ui: &mut cursebox::UI<A>, cells: &[[Cell; WIDTH]; HEIGHT]) {
     for (y, row) in cells.iter().enumerate() {
         for (x, cell) in row.iter().cloned().enumerate() {
             if let Some(p) = ui.cells_mut().at_mut(x, y) { *p = cell }
@@ -15,12 +16,12 @@ fn draw(cells: &[[Cell; WIDTH]; HEIGHT]) {
 }
 
 fn main() {
-    let mut ui = cursebox::UI::new_in(jemalloc::Jemalloc).unwrap();
+    let mut ui = cursebox::UI::new_in(default_allocator::Heap).unwrap();
     let mut pt = (0, 0);
     let mut cells = [[Cell { ch: ' ' as _, fg: Attr::Default, bg: Attr::Default }; WIDTH]; HEIGHT];
     loop {
         ui.clear();
-        draw();
+        draw(&mut ui, &cells);
         ui.set_cursor(pt.0, pt.1);
         ui.present();
         match ui.fetch_event(None) {

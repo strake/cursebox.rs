@@ -148,7 +148,7 @@ fn try_terminfo_path_helper(buf: &mut [u8], name: &Nul<u8>, mut k: usize) -> Opt
     let path = unsafe { Nul::new_unchecked(buf.as_ptr()) };
 
     use unix::file::*;
-    let mut file = open_at(None, path, OpenMode::RdOnly, FileMode::empty()).ok()?;
+    let mut file = open_at(None, path, OpenMode::RdOnly, None).ok()?;
     file.try_read_full(buf).ok()
 }
 
