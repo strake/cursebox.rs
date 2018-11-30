@@ -35,4 +35,4 @@ util = "0.1.1"
 cc = "1"
 
 [dev-dependencies]
-jemalloc = "0.3"
+default_allocator = "0.3"
