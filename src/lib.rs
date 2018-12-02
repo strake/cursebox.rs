@@ -118,7 +118,7 @@ impl<A: Alloc> UI<A> {
         use unix::file::*;
 
         lock.compare_exchange(false, true, Memord::Acquire, Memord::Relaxed)
-            .map_err(|_| ::unix::err::EBUSY)?;
+            .map_err(|_| OsErr::EBUSY)?;
 
         let tty = open_at(None, str0!("/dev/tty"), OpenMode::RdWr, None)?;
         let terminfo::Spec { funcs, keys } = terminfo::init(unsafe { static_buf![u8; 0x4000] })
@@ -210,7 +210,7 @@ impl<A: Alloc> UI<A> {
 
     fn update_size(&mut self) -> Result<(), OsErr> {
         self.term_size = self.tty_mut().get_tty_size()?;
-        self.cell_buffer.resize(self.term_size.0 as _, self.term_size.1 as _).map_err(|_| ::unix::err::ENOMEM)?;
+        self.cell_buffer.resize(self.term_size.0 as _, self.term_size.1 as _).map_err(|_| OsErr::ENOMEM)?;
         self.cell_buffer.cells_mut().0.clear(self.fg, self.bg);
         self.term_writer.write_clear(self.cursor_x, self.cursor_y, self.fg, self.bg);
         self.term_writer.w.flush();
@@ -253,7 +253,7 @@ impl<A: Alloc> UI<A> {
         if let Some((mod_, key)) = extract_event(&mut self.inbuf, self.input_mode, mem::transmute(self.keys)) { return Ok(Some(Event::Key(mod_, key))) }
 
         match self.inbuf.push_from_file(self.term_writer.w.as_mut()) {
-            Err(::unix::err::EAGAIN) | Err(::unix::err::EWOULDBLOCK) => return Ok(None),
+            Err(OsErr::EAGAIN) | Err(OsErr::EWOULDBLOCK) => return Ok(None),
             Err(e) => return Err(e),
             Ok(n) if n > 0 => if let Some((mod_, key)) = extract_event(&mut self.inbuf, self.input_mode, mem::transmute(self.keys)) { return Ok(Some(Event::Key(mod_, key))) },
             _ => ()

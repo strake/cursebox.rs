@@ -26,7 +26,7 @@ slot = "0.2.4"
 subslice = "0.2.0"
 syscall = "0.2"
 tempus = { version = "0.2.3", features = ["libc"] }
-unix = "0.6.3"
+unix = "0.6.7"
 unix-signal = "0.1"
 unix-tty = "0.3"
 util = "0.1.1"
