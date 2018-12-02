@@ -10,13 +10,12 @@ static event_keys: [Key; TB_KEYS_NUM] = { use self::Key::*; [
 ] };
 
 fn parse_escape_seq(buf: &[u8], keys: [&::nul::Nul<u8>; TB_KEYS_NUM]) -> Option<(Mod, Key, NonZeroUsize)> {
-    for i in 0..TB_KEYS_NUM {
+    (0..TB_KEYS_NUM).find_map(|i| {
         let key = &keys[i][..];
         if let (Some(n), true) = (NonZeroUsize::new(key.len()), buf.starts_with(key)) {
-            return Some((Mod::empty(), event_keys[i], n))
-        }
-    }
-    None
+            Some((Mod::empty(), event_keys[i], n))
+        } else { None }
+    })
 }
 
 const BUFFER_SIZE_MAX: usize = 16;
