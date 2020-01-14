@@ -23,7 +23,6 @@ extern crate loca;
 #[macro_use]
 extern crate null_terminated as nul;
 extern crate ptr;
-extern crate slot;
 extern crate subslice;
 #[macro_use]
 extern crate syscall;
@@ -34,12 +33,11 @@ extern crate unix_signal;
 extern crate unix_tty;
 
 use containers::collections::{RawVec, FixedStorage};
-use core::{cmp, fmt, mem, num::NonZeroUsize, sync::atomic::{AtomicBool, Ordering as Memord}};
+use core::{cmp, fmt, mem::{self, MaybeUninit}, num::NonZeroUsize, sync::atomic::{AtomicBool, Ordering as Memord}};
 use io::Write;
 use libc::c_int;
 use loca::Alloc;
 use nul::NulStr;
-use slot::Slot;
 use unix::{file::File, err::OsErr};
 use unix_tty::TtyExt;
 
@@ -107,8 +105,8 @@ static lock: AtomicBool = AtomicBool::new(false);
 
 macro_rules! static_buf {
     [$t:ty; $x:expr] => {{
-        static mut buf: Slot<[$t; $x]> = Slot::new();
-        &mut buf.x
+        static mut buf: MaybeUninit<[$t; $x]> = MaybeUninit::uninit();
+        &mut *buf.as_mut_ptr()
     }}
 }
 
@@ -136,7 +134,7 @@ impl<A: Alloc> UI<A> {
         let mut ui = Self {
             cell_buffer: CellBuf::new_in(alloc),
             term_writer: unsafe {
-                static mut buf: [Slot<u8>; 0x8000] = [Slot::new(); 0x8000];
+                static mut buf: [MaybeUninit<u8>; 0x8000] = [MaybeUninit::uninit(); 0x8000];
                 term::TermWriter::new(buf::Write::from_raw(tty, RawVec::from_storage(&mut buf[..])))
             },
             cursor_x: !0, cursor_y: !0,
