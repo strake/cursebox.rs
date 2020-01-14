@@ -22,7 +22,6 @@ libc = { version = "0.2", default-features = false }
 loca = "0.7"
 null-terminated = "0.3.3"
 ptr = "0.2.1"
-slot = "0.2.4"
 subslice = "0.2.0"
 syscall = "0.2"
 tempus = { version = "0.2.3", features = ["libc"] }
