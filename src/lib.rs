@@ -15,8 +15,6 @@ extern crate buf;
 #[macro_use]
 extern crate bitflags;
 extern crate containers;
-#[macro_use]
-extern crate derivative;
 extern crate io;
 extern crate libc;
 extern crate loca;
@@ -86,15 +84,13 @@ static mut winch_fds: [c_int; 2] = [-1; 2];
 /// Cell-grid TTY UI
 ///
 /// Merely holds a grid of cells which you can modify (with [`cells_mut`](#method.cells_mut) or [`printer`](#method.printer)) and then [`present`](#method.present) to the TTY.
-#[derive(Derivative)]
-#[derivative(Debug)]
+#[derive(Debug)]
 pub struct UI<A: Alloc> {
     cell_buffer: CellBuf<A>,
     term_writer: term::TermWriter<buf::Write<u8, File, FixedStorage<'static, u8>>>,
     cursor_x: usize, cursor_y: usize,
     fg: Attr, bg: Attr,
     term_size: (u16, u16),
-    #[derivative(Debug = "ignore")]
     orig_tios: ::libc::termios,
     input_mode: input::Mode,
     inbuf: Ringbuffer<'static>,
