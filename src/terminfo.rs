@@ -1,10 +1,7 @@
-#![allow(safe_extern_statics)]
-
 use core::slice;
 use io::Read;
 use nul::{Nul, NulStr};
 use subslice::SubsliceExt;
-use unix::env::environ;
 use util::SliceExt;
 
 use term::T_FUNCS_NUM;
@@ -111,6 +108,7 @@ macro_rules! chain {
 }
 
 fn load_terminfo(buf: &mut [u8]) -> Option<usize> {
+    let environ = unsafe { unix::env::environ };
     let name = environ.get("TERM".as_bytes())??;
 
     if let Some(terminfo) = environ.get("TERMINFO".as_bytes()).and_then(|a|a) {
@@ -162,7 +160,7 @@ fn fill_slice<A, As: Iterator<Item = A>>(tgt: &mut [A], src: As) -> Option<usize
 }
 
 fn init_builtin() -> Option<Spec<'static>> {
-    let term = environ.get("TERM".as_bytes())??;
+    let term = unsafe { unix::env::environ }.get("TERM".as_bytes())??;
     for &(name, spec) in terms { if *name.as_bytes() == term[..] { return Some(spec) } }
     for &(name, spec) in terms_compat { if let Some(_) = name.as_bytes().find(&term[..]) { return Some(spec) } }
     None
