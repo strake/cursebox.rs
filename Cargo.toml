@@ -22,7 +22,7 @@ loca = "0.7"
 null-terminated = "0.3.3"
 ptr = "0.2.1"
 subslice = "0.2.0"
-syscall = "0.2"
+system-call = "0.1.2"
 tempus = { version = "0.2.3", features = ["libc"] }
 unix = "0.6.7"
 unix-signal = "0.1"
