@@ -1,3 +1,4 @@
+use chain::chain;
 use core::slice;
 use io::Read;
 use nul::{Nul, NulStr};
@@ -101,11 +102,6 @@ pub fn init(buf: &mut [u8]) -> Option<Spec> { unsafe {
 
 #[inline(always)]
 fn u16_le(bs: [u8; 2]) -> u16 { bs[0] as u16 | (bs[1] as u16) << 8 }
-
-macro_rules! chain {
-    [] => (::core::iter::empty());
-    [$x0:expr $(, $x:expr)*] => ($x0.into_iter().chain(chain![$($x),*]));
-}
 
 fn load_terminfo(buf: &mut [u8]) -> Option<usize> {
     let environ = unsafe { unix::env::environ };
