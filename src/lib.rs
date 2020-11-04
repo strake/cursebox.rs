@@ -14,6 +14,7 @@
 extern crate buf;
 #[macro_use]
 extern crate bitflags;
+extern crate chain;
 extern crate containers;
 extern crate io;
 extern crate libc;

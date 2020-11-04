@@ -14,6 +14,7 @@ homepage = "https://github.com/strake/cursebox.rs"
 
 [dependencies]
 buf = "0.2"
+chn = "0.1"
 containers = { version = "0.9.0", default-features = false }
 flags = "0.1"
 i-o = "0.4.3"
