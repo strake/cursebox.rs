@@ -18,7 +18,7 @@ chn = "0.1"
 containers = { version = "0.9.0", default-features = false }
 flags = "0.1"
 i-o = "0.4.3"
-libc = { version = "0.2", default-features = false, features = ["extra_traits"] }
+libc = { package = "libc-interface", version = "0.1" }
 loca = "0.7"
 null-terminated = "0.3.3"
 ptr = "0.2.1"
