@@ -29,9 +29,3 @@ unix = "0.6.7"
 unix-signal = "0.1"
 unix-tty = "0.3"
 util = "0.1.1"
-
-[build-dependencies]
-cc = "1"
-
-[dev-dependencies]
-default_allocator = "0.3"
