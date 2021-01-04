@@ -261,7 +261,7 @@ impl<A: Alloc> UI<A> {
             ::libc::FD_SET(winch_fds[0], &mut events);
             esyscall!(SELECT, cmp::max(tty_fd, winch_fds[0])+1, &mut events as *mut _, 0, 0,
                       timeout.and_then(::time::Span::to_c_timespec)
-                             .map(|::libc::timespec { tv_sec, tv_nsec }| ::libc::timeval { tv_sec, tv_usec: tv_nsec / 1000 })
+                             .map(|::libc::timespec { tv_sec, tv_nsec }| ::libc::timeval { tv_sec, tv_usec: (tv_nsec / 1000) as _ })
                              .as_mut().map_or(0 as *const ::libc::timeval, |p| p as *const _))?;
             if ::libc::FD_ISSET(tty_fd, &events as *const _ as *mut _) {
                 if 0 == self.inbuf.push_from_file(self.term_writer.w.as_mut())? { continue }
