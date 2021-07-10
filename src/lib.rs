@@ -1,6 +1,6 @@
 #![no_std]
 
-#![feature(const_fn)]
+#![feature(const_fn_trait_bound)]
 
 #![deny(missing_debug_implementations)]
 //#![deny(missing_docs)]
