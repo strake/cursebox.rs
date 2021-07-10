@@ -21,7 +21,7 @@ fn parse_escape_seq(buf: &[u8], keys: [&::nul::Nul<u8>; TB_KEYS_NUM]) -> Option<
 const BUFFER_SIZE_MAX: usize = 16;
 
 pub(crate) fn extract_event(inbuf: &mut Ringbuffer, mode: Mode, keys: [&::nul::Nul<u8>; TB_KEYS_NUM]) -> Option<(Mod, Key)> {
-    let mut buf: [u8; BUFFER_SIZE_MAX] = unsafe { ::core::mem::uninitialized() };
+    let mut buf: [u8; BUFFER_SIZE_MAX] = unsafe { ::core::mem::MaybeUninit::uninit().assume_init() };
     let nbytes = ::core::cmp::min(inbuf.data_size(), buf.len());
     if 0 == nbytes { return None }
 

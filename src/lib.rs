@@ -268,7 +268,7 @@ impl<A: Alloc> UI<A> {
                 if let Some((mod_, key)) = extract_event(&mut self.inbuf, self.input_mode, mem::transmute(self.keys)) { return Ok(Some(Event::Key(mod_, key))) }
             }
             if ::libc::FD_ISSET(winch_fds[0], &events as *const _ as *mut _) {
-                esyscall!(READ, winch_fds[0], &mut mem::uninitialized::<[u8; 4]>() as *mut _, 4)?;
+                esyscall!(READ, winch_fds[0], &mut mem::MaybeUninit::<[u8; 4]>::uninit().assume_init() as *mut _, 4)?;
                 self.update_size();
                 return Ok(Some(Event::Resize(self.term_size.0 as _, self.term_size.1 as _)))
             }
